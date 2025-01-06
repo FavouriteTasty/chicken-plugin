@@ -45,7 +45,7 @@ window.onload = (event) => {
       container.style.bottom = "0";
       container.style.left = "0";
       container.style.zIndex = "9999";
-      container.style.height = "200px";
+      container.style.height = "100px";
       container.style.width = "100vw";
       document.body.appendChild(container);
     }

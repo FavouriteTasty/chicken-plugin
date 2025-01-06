@@ -5,6 +5,7 @@ const Chicken: FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const moveIndexRef = useRef<number>(1);
+  const zzzIndexRef = useRef<number>(1);
   const sleepIndexRef = useRef<number>(1);
   const stepRef = useRef<number>(0);
   const lastDrawChickenTimeRef = useRef<number>(0); // Add a ref to store the last draw time
@@ -15,16 +16,11 @@ const Chicken: FC = () => {
   const canvasWidthRef = useRef(1200);
   const isMouseMoveRef = useRef(false);
   const urlRef = useRef("");
-  const zzzRef = useRef([
-    { x: 0, y: 200, size: 20 },
-    { x: 20, y: 180, size: 30 },
-    { x: 40, y: 160, size: 40 },
-  ]);
-  const chickenSize = 200;
+  const chickenSize = 100;
 
   const moveStepDistance = 10;
-  const stepInterval = 10;
-  const zzzInterval = 10;
+  const stepInterval = 100;
+  const zzzInterval = 100;
   const mouseStoppedDelay = 3000;
 
   const chickenMove = (ctx: CanvasRenderingContext2D): void => {
@@ -74,30 +70,20 @@ const Chicken: FC = () => {
   const zzzSleep = (ctx: CanvasRenderingContext2D): void => {
     const moveDistance = canvasWidthRef.current - chickenSize;
 
-    zzzRef.current.forEach((z, index) => {
-      ctx.font = "900 20px MyCustomFont";
-      ctx.fillStyle = "#000";
-      ctx.font = `bold ${z.size}px Arial`;
-      ctx.fillText(
-        "Z",
-        flipRef.current
-          ? -(canvasWidthRef.current - stepRef.current * moveStepDistance + z.x)
-          : moveDistance -
-              stepRef.current * moveStepDistance * directionRef.current -
-              z.x,
-        z.y,
-      );
-      z.x += 0.5 * directionRef.current;
-      z.y -= 0.5 * index + 0.5; // 向上移动
-      z.size += 0.2; // 逐渐放大
+    zzzIndexRef.current = (zzzIndexRef.current % 9) + 1;
 
-      // 如果超出边界，重置位置和大小
-      if (z.y < 0 || z.size > 60) {
-        z.x = index * 20;
-        z.y = 160 + index * -20;
-        z.size = 20 + index * 10;
+    const img = new Image();
+    img.src = urlRef.current + `zzz-${zzzIndexRef.current}.png`;
+    img.onload = () => {
+      if (canvasRef.current !== null) {
+        const x = flipRef.current
+          ? -(canvasWidthRef.current - stepRef.current * moveStepDistance)
+          : moveDistance -
+            stepRef.current * moveStepDistance * directionRef.current;
+
+        ctx.drawImage(img, x - 30, 25, 30, 30);
       }
-    });
+    };
   };
 
   const chickenSleep = (ctx: CanvasRenderingContext2D): void => {
@@ -212,7 +198,7 @@ const Chicken: FC = () => {
       <canvas
         ref={canvasRef}
         width={canvasWidth}
-        height="400"
+        height={chickenSize}
         style={{
           backgroundColor: "transparent",
         }}
