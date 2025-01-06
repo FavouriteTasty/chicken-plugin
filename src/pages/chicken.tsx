@@ -3,6 +3,7 @@ import { getExtensionURL } from "../util/path";
 
 const Chicken: FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const moveIndexRef = useRef<number>(1);
   const sleepIndexRef = useRef<number>(1);
   const stepRef = useRef<number>(0);
@@ -10,7 +11,8 @@ const Chicken: FC = () => {
   const lastDrawZZZTimeRef = useRef<number>(0); // Add a ref to store the last draw time
   const directionRef = useRef<number>(1); // 1 for forward, -1 for backward
   const flipRef = useRef<boolean>(false); // Track if the image is flipped
-  const [canvasWidth] = useState(1200);
+  const [canvasWidth, setCanvasWidth] = useState(1200);
+  const canvasWidthRef = useRef(1200);
   const isMouseMoveRef = useRef(false);
   const urlRef = useRef("");
   const zzzRef = useRef([
@@ -18,15 +20,17 @@ const Chicken: FC = () => {
     { x: 20, y: 180, size: 30 },
     { x: 40, y: 160, size: 40 },
   ]);
-  const chickenSize = 350;
-  const moveDistance = canvasWidth - chickenSize;
+  const chickenSize = 200;
+
   const moveStepDistance = 10;
-  const moveMaxSteps = moveDistance / moveStepDistance;
-  const stepInterval = 100;
+  const stepInterval = 10;
   const zzzInterval = 10;
   const mouseStoppedDelay = 3000;
 
   const chickenMove = (ctx: CanvasRenderingContext2D): void => {
+    const moveDistance = canvasWidthRef.current - chickenSize;
+    const moveMaxSteps = moveDistance / moveStepDistance;
+
     moveIndexRef.current = (moveIndexRef.current % 4) + 1;
 
     const img = new Image();
@@ -41,26 +45,24 @@ const Chicken: FC = () => {
           ctx.scale(-1, 1);
         }
 
-        ctx.drawImage(
-          img,
-          flipRef.current
-            ? -(canvasWidth - stepRef.current * moveStepDistance)
-            : moveDistance -
-                stepRef.current * moveStepDistance * directionRef.current,
-          0,
-          chickenSize,
-          chickenSize,
-        );
+        const x = flipRef.current
+          ? -(canvasWidthRef.current - stepRef.current * moveStepDistance)
+          : moveDistance -
+            stepRef.current * moveStepDistance * directionRef.current;
+
+        ctx.drawImage(img, x, 0, chickenSize, chickenSize);
 
         ctx.restore();
       }
 
-      if (stepRef.current === moveMaxSteps) {
+      if (stepRef.current >= moveMaxSteps) {
+        stepRef.current = moveMaxSteps;
         directionRef.current *= -1;
         flipRef.current = !flipRef.current;
       }
 
-      if (stepRef.current === 0 && directionRef.current === -1) {
+      if (stepRef.current < 0 && directionRef.current === -1) {
+        stepRef.current = 0;
         flipRef.current = false;
         directionRef.current = 1;
       }
@@ -70,6 +72,8 @@ const Chicken: FC = () => {
   };
 
   const zzzSleep = (ctx: CanvasRenderingContext2D): void => {
+    const moveDistance = canvasWidthRef.current - chickenSize;
+
     zzzRef.current.forEach((z, index) => {
       ctx.font = "900 20px MyCustomFont";
       ctx.fillStyle = "#000";
@@ -77,7 +81,7 @@ const Chicken: FC = () => {
       ctx.fillText(
         "Z",
         flipRef.current
-          ? -(canvasWidth - stepRef.current * moveStepDistance + z.x)
+          ? -(canvasWidthRef.current - stepRef.current * moveStepDistance + z.x)
           : moveDistance -
               stepRef.current * moveStepDistance * directionRef.current -
               z.x,
@@ -97,6 +101,8 @@ const Chicken: FC = () => {
   };
 
   const chickenSleep = (ctx: CanvasRenderingContext2D): void => {
+    const moveDistance = canvasWidthRef.current - chickenSize;
+
     if (sleepIndexRef.current !== 2)
       sleepIndexRef.current = (sleepIndexRef.current % 2) + 1;
 
@@ -113,7 +119,7 @@ const Chicken: FC = () => {
         ctx.drawImage(
           img,
           flipRef.current
-            ? -(canvasWidth - stepRef.current * moveStepDistance)
+            ? -(canvasWidthRef.current - stepRef.current * moveStepDistance)
             : moveDistance -
                 stepRef.current * moveStepDistance * directionRef.current,
           0,
@@ -125,15 +131,32 @@ const Chicken: FC = () => {
     };
   };
 
+  const handleResize = (): void => {
+    if (containerRef.current !== null) {
+      setCanvasWidth(containerRef.current.clientWidth);
+      canvasWidthRef.current = containerRef.current.clientWidth;
+      stepRef.current = 0;
+      directionRef.current = 1;
+      flipRef.current = false;
+    }
+  };
+
   useEffect(() => {
-    getExtensionURL('')
-    .then(url => {
-      urlRef.current = url as string + "images/";
-      console.log('资源 URL:', url, urlRef.current + `chicken2-${sleepIndexRef.current}.png`);
-    })
-    .catch(error => {
-      console.error('获取资源 URL 失败:', error);
-    });
+    handleResize();
+    const resizeObserver = new ResizeObserver(handleResize);
+    resizeObserver.observe(containerRef.current);
+    getExtensionURL("")
+      .then((url) => {
+        urlRef.current = (url as string) + "images/";
+        console.log(
+          "资源 URL:",
+          url,
+          urlRef.current + `chicken2-${sleepIndexRef.current}.png`,
+        );
+      })
+      .catch((error) => {
+        console.error("获取资源 URL 失败:", error);
+      });
 
     let timeout: number | undefined;
     const handleMouseMove = (e: MouseEvent): void => {
@@ -144,9 +167,9 @@ const Chicken: FC = () => {
         moveIndexRef.current = 0;
       }, mouseStoppedDelay);
     };
-   
+
     window.addEventListener("mousemove", handleMouseMove);
-    
+
     const drawFrame = (time: DOMHighResTimeStamp): void => {
       if (canvasRef.current !== null) {
         const ctx = canvasRef.current.getContext("2d");
@@ -177,11 +200,15 @@ const Chicken: FC = () => {
     return () => {
       cancelAnimationFrame(id);
       window.removeEventListener("mousemove", handleMouseMove);
+      resizeObserver.disconnect();
     };
   }, []);
 
   return (
-    <div className="h-screen w-screen flex items-center justify-center">
+    <div
+      className="h-full w-full flex items-center justify-center"
+      ref={containerRef}
+    >
       <canvas
         ref={canvasRef}
         width={canvasWidth}
@@ -195,4 +222,3 @@ const Chicken: FC = () => {
 };
 
 export default Chicken;
-
