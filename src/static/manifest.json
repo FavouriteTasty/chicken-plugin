@@ -1,0 +1,51 @@
+{
+    "manifest_version": 3,
+    "name": "小鸡仔",
+    "description": "小鸡仔 for chrome extension",
+    "version": "1.0.0",
+    "action" : {
+        "default_popup": "popup.html",
+        "default_title": "小鸡仔",
+        "default_icon" : "icon.png"
+    },
+    "permissions": [
+        "tabs",
+        "bookmarks",
+        "storage",
+        "identity",
+        "activeTab",
+        "runtime"
+    ],
+    "icons": {
+        "16" : "icon.png",
+        "48" : "icon.png",
+        "128" : "icon.png"
+    },
+    "options_page": "options.html",
+    "background": {
+        "service_worker": "background.js"
+    },
+    "content_scripts": [
+        {
+            "matches": ["<all_urls>"],
+            "js": ["contentScript.js"],
+            "run_at": "document_end"
+        }
+    ],
+    "web_accessible_resources": [
+        {
+            "resources": ["chicken.js", "vendors-node_modules_pnpm_react-dom_18_3_1_react_18_3_1_node_modules_react-dom_client_js.js"],
+            "matches": ["<all_urls>"],
+            "run_at": "document_end"
+        },
+        {
+            "resources": [
+                "images/*"
+            ],
+            "matches": ["<all_urls>"]
+        }
+    ],
+    "content_security_policy": {
+        "extension_pages": "script-src 'self'; object-src 'self'"
+    }
+}
