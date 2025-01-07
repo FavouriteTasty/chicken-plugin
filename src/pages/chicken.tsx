@@ -1,7 +1,12 @@
 import React, { useEffect, useRef, useState, type FC } from "react";
 import { getExtensionURL } from "../util/path";
 
-const Chicken: FC = () => {
+interface ChickenProps {
+  hasVideo?: boolean;
+}
+
+const Chicken: FC<ChickenProps> = (props) => {
+  const { hasVideo } = props;
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const moveIndexRef = useRef<number>(1);
@@ -23,6 +28,8 @@ const Chicken: FC = () => {
   const zzzInterval = 100;
   const mouseStoppedDelay = 3000;
 
+  console.log("hasVideo", hasVideo);
+
   const chickenMove = (ctx: CanvasRenderingContext2D): void => {
     const moveDistance = canvasWidthRef.current - chickenSize;
     const moveMaxSteps = moveDistance / moveStepDistance;
@@ -30,7 +37,9 @@ const Chicken: FC = () => {
     moveIndexRef.current = (moveIndexRef.current % 4) + 1;
 
     const img = new Image();
-    img.src = urlRef.current + `chicken1-${moveIndexRef.current}.png`;
+    img.src =
+      urlRef.current +
+      (hasVideo ? `cola-chicken1.png` : `chicken1-${moveIndexRef.current}.png`);
     img.onload = () => {
       if (canvasRef.current !== null) {
         ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);

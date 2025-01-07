@@ -7,6 +7,7 @@ import Chicken from "./chicken"; // 确保路径正确
   console.log("chicken.bundle.js 执行中");
 
   const container = document.getElementById("react-animation-container");
+  const hasVideo = !!document.querySelector("video");
   console.log("nihao", container);
   console.log("chrome.runtime", chrome.runtime);
 
@@ -14,7 +15,7 @@ import Chicken from "./chicken"; // 确保路径正确
     try {
       console.log("开始创建 React root");
       const root = createRoot(container);
-      root.render(<Chicken />);
+      root.render(<Chicken hasVideo={hasVideo} />);
       console.log("动画组件已渲染");
     } catch (error) {
       console.error("渲染组件时出错：", error);
