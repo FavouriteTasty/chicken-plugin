@@ -70,18 +70,21 @@ const Chicken: FC = () => {
   const zzzSleep = (ctx: CanvasRenderingContext2D): void => {
     const moveDistance = canvasWidthRef.current - chickenSize;
 
-    zzzIndexRef.current = (zzzIndexRef.current % 9) + 1;
+    zzzIndexRef.current = (zzzIndexRef.current % 3) + 1;
 
     const img = new Image();
     img.src = urlRef.current + `zzz-${zzzIndexRef.current}.png`;
     img.onload = () => {
       if (canvasRef.current !== null) {
+        if (flipRef.current) {
+          ctx.scale(-1, 1);
+        }
         const x = flipRef.current
           ? -(canvasWidthRef.current - stepRef.current * moveStepDistance)
           : moveDistance -
             stepRef.current * moveStepDistance * directionRef.current;
 
-        ctx.drawImage(img, x - 30, 25, 30, 30);
+        ctx.drawImage(img, x - 40, 15, 40, 40);
       }
     };
   };
