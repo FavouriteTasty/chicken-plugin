@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState, type FC } from "react";
 import { getExtensionURL } from "../util/path";
+import { loadImage, loadImages } from "../util/image";
 
 interface ChickenProps {
   hasVideo?: boolean;
@@ -46,210 +47,201 @@ const Chicken: FC<ChickenProps> = (props) => {
     };
   };
 
-  const chickenMove = (ctx: CanvasRenderingContext2D): void => {
+  const chickenMove = async (ctx: CanvasRenderingContext2D): Promise<void> => {
     const moveDistance = canvasWidthRef.current - chickenSize;
     const moveMaxSteps = moveDistance / moveStepDistance;
 
     moveIndexRef.current = (moveIndexRef.current % 4) + 1;
 
-    const img = new Image();
-    img.src = urlRef.current + `chicken1-${moveIndexRef.current}.png`;
-    img.onload = () => {
-      if (canvasRef.current !== null) {
-        ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+    const img = await loadImage(
+      urlRef.current + `chicken1-${moveIndexRef.current}.png`,
+    );
+    if (canvasRef.current !== null) {
+      ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
 
-        ctx.save();
+      ctx.save();
 
-        if (flipRef.current) {
-          ctx.scale(-1, 1);
-        }
-
-        const x = flipRef.current
-          ? -(canvasWidthRef.current - stepRef.current * moveStepDistance)
-          : moveDistance -
-            stepRef.current * moveStepDistance * directionRef.current;
-
-        ctx.drawImage(img, x, 0, chickenSize, chickenSize);
-
-        ctx.restore();
+      if (flipRef.current) {
+        ctx.scale(-1, 1);
       }
 
-      if (stepRef.current >= moveMaxSteps) {
-        stepRef.current = moveMaxSteps;
-        directionRef.current *= -1;
-        flipRef.current = !flipRef.current;
-      }
+      const x = flipRef.current
+        ? -(canvasWidthRef.current - stepRef.current * moveStepDistance)
+        : moveDistance -
+          stepRef.current * moveStepDistance * directionRef.current;
 
-      if (stepRef.current < 0 && directionRef.current === -1) {
-        stepRef.current = 0;
-        flipRef.current = false;
-        directionRef.current = 1;
-      }
+      ctx.drawImage(img, x, 0, chickenSize, chickenSize);
 
-      stepRef.current += directionRef.current;
-    };
+      ctx.restore();
+    }
+
+    if (stepRef.current >= moveMaxSteps) {
+      stepRef.current = moveMaxSteps;
+      directionRef.current *= -1;
+      flipRef.current = !flipRef.current;
+    }
+
+    if (stepRef.current < 0 && directionRef.current === -1) {
+      stepRef.current = 0;
+      flipRef.current = false;
+      directionRef.current = 1;
+    }
+
+    stepRef.current += directionRef.current;
   };
 
-  const zzzSleep = (ctx: CanvasRenderingContext2D): void => {
+  const zzzSleep = async (ctx: CanvasRenderingContext2D): Promise<void> => {
     const moveDistance = canvasWidthRef.current - chickenSize;
 
     zzzIndexRef.current = (zzzIndexRef.current % 3) + 1;
 
-    const img = new Image();
-    img.src = urlRef.current + `zzz-${zzzIndexRef.current}.png`;
-    img.onload = () => {
-      if (canvasRef.current !== null) {
-        if (flipRef.current) {
-          ctx.scale(-1, 1);
-        }
-        const x = flipRef.current
-          ? -(canvasWidthRef.current - stepRef.current * moveStepDistance)
-          : moveDistance -
-            stepRef.current * moveStepDistance * directionRef.current;
-
-        ctx.drawImage(img, x - 40, 15, 40, 40);
+    const img = await loadImage(
+      urlRef.current + `zzz-${zzzIndexRef.current}.png`,
+    );
+    if (canvasRef.current !== null) {
+      if (flipRef.current) {
+        ctx.scale(-1, 1);
       }
-    };
+      const x = flipRef.current
+        ? -(canvasWidthRef.current - stepRef.current * moveStepDistance)
+        : moveDistance -
+          stepRef.current * moveStepDistance * directionRef.current;
+
+      ctx.drawImage(img, x - 40, 15, 40, 40);
+    }
   };
 
-  const chickenEat = (ctx: CanvasRenderingContext2D): void => {
+  const chickenEat = async (ctx: CanvasRenderingContext2D): Promise<void> => {
     const moveDistance = canvasWidthRef.current - chickenSize;
     eatIndexRef.current = (eatIndexRef.current % 4) + 1;
-    const img = new Image();
-    img.src = urlRef.current + `chicken-eat1-${eatIndexRef.current}.png`;
-    img.onload = () => {
-      if (canvasRef.current !== null) {
-        ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-        if (flipRef.current) {
-          ctx.scale(-1, 1);
-        }
-        const x = flipRef.current
-          ? -(canvasWidthRef.current - stepRef.current * moveStepDistance)
-          : moveDistance -
-            stepRef.current * moveStepDistance * directionRef.current;
-
-        ctx.drawImage(img, x, 0, chickenSize, chickenSize);
+    const img = await loadImage(
+      urlRef.current + `chicken-eat1-${eatIndexRef.current}.png`,
+    );
+    if (canvasRef.current !== null) {
+      ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+      if (flipRef.current) {
+        ctx.scale(-1, 1);
       }
-    };
+      const x = flipRef.current
+        ? -(canvasWidthRef.current - stepRef.current * moveStepDistance)
+        : moveDistance -
+          stepRef.current * moveStepDistance * directionRef.current;
+
+      ctx.drawImage(img, x, 0, chickenSize, chickenSize);
+    }
   };
 
-  const grassDraw = (ctx: CanvasRenderingContext2D): void => {
+  const grassDraw = async (ctx: CanvasRenderingContext2D): Promise<void> => {
     const moveDistance = canvasWidthRef.current - chickenSize;
 
-    const img = new Image();
-    img.src = urlRef.current + `grass.png`;
-    img.onload = () => {
-      if (canvasRef.current !== null) {
-        if (flipRef.current) {
-          ctx.scale(-1, 1);
-        }
-        const x = flipRef.current
-          ? -(canvasWidthRef.current - stepRef.current * moveStepDistance)
-          : moveDistance -
-            stepRef.current * moveStepDistance * directionRef.current;
-
-        ctx.drawImage(img, x, 0, chickenSize, chickenSize);
+    const img = await loadImage(urlRef.current + `grass.png`);
+    if (canvasRef.current !== null) {
+      if (flipRef.current) {
+        ctx.scale(-1, 1);
       }
-    };
+      const x = flipRef.current
+        ? -(canvasWidthRef.current - stepRef.current * moveStepDistance)
+        : moveDistance -
+          stepRef.current * moveStepDistance * directionRef.current;
+
+      ctx.drawImage(img, x, 0, chickenSize, chickenSize);
+    }
   };
 
-  const chickenSleep = (ctx: CanvasRenderingContext2D): void => {
+  const chickenSleep = async (ctx: CanvasRenderingContext2D): Promise<void> => {
     const moveDistance = canvasWidthRef.current - chickenSize;
 
     if (sleepIndexRef.current !== 2)
       sleepIndexRef.current = (sleepIndexRef.current % 2) + 1;
 
-    const img = new Image();
-    img.src = urlRef.current + `chicken2-${sleepIndexRef.current}.png`;
-    img.onload = () => {
-      if (canvasRef.current !== null) {
-        ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-        ctx.save();
-        if (flipRef.current) {
-          ctx.scale(-1, 1);
-        }
-
-        ctx.drawImage(
-          img,
-          flipRef.current
-            ? -(canvasWidthRef.current - stepRef.current * moveStepDistance)
-            : moveDistance -
-                stepRef.current * moveStepDistance * directionRef.current,
-          0,
-          chickenSize,
-          chickenSize,
-        );
-        ctx.restore();
+    const img = await loadImage(
+      urlRef.current + `chicken2-${sleepIndexRef.current}.png`,
+    );
+    if (canvasRef.current !== null) {
+      ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+      ctx.save();
+      if (flipRef.current) {
+        ctx.scale(-1, 1);
       }
-    };
+
+      ctx.drawImage(
+        img,
+        flipRef.current
+          ? -(canvasWidthRef.current - stepRef.current * moveStepDistance)
+          : moveDistance -
+              stepRef.current * moveStepDistance * directionRef.current,
+        0,
+        chickenSize,
+        chickenSize,
+      );
+      ctx.restore();
+    }
   };
 
-  const chickenDrink = (ctx: CanvasRenderingContext2D): void => {
+  const chickenDrink = async (ctx: CanvasRenderingContext2D): Promise<void> => {
     drinkIndexRef.current = (drinkIndexRef.current % 4) + 1;
-    const img = new Image();
-    img.src = urlRef.current + `cola-chicken1-${drinkIndexRef.current}.png`;
-    img.onload = () => {
-      if (canvasRef.current !== null) {
-        ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-        const x = canvasWidthRef.current - chickenSize;
-        ctx.drawImage(img, x, 0, chickenSize, chickenSize);
-      }
-    };
+    const img = await loadImage(
+      urlRef.current + `cola-chicken1-${drinkIndexRef.current}.png`,
+    );
+    if (canvasRef.current !== null) {
+      ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+      const x = canvasWidthRef.current - chickenSize;
+      ctx.drawImage(img, x, 0, chickenSize, chickenSize);
+    }
   };
 
-  const chickenMusic = (ctx: CanvasRenderingContext2D): void => {
+  const chickenMusic = async (ctx: CanvasRenderingContext2D): Promise<void> => {
     musicIndexRef.current = (musicIndexRef.current % 3) + 1;
-    const img = new Image();
-    img.src = urlRef.current + `music-chicken1-${musicIndexRef.current}.png`;
-    img.onload = () => {
-      if (canvasRef.current !== null) {
-        ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-        const x = canvasWidthRef.current - chickenSize;
-        ctx.drawImage(img, x, 0, chickenSize, chickenSize);
-      }
-    };
+    const img = await loadImage(
+      urlRef.current + `music-chicken1-${musicIndexRef.current}.png`,
+    );
+    if (canvasRef.current !== null) {
+      ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+      const x = canvasWidthRef.current - chickenSize;
+      ctx.drawImage(img, x, 0, chickenSize, chickenSize);
+    }
   };
 
-  const chickenGame = (ctx: CanvasRenderingContext2D): void => {
+  const chickenGame = async (ctx: CanvasRenderingContext2D): Promise<void> => {
     gameIndexRef.current = (gameIndexRef.current % 2) + 1;
-    const img = new Image();
-    img.src = urlRef.current + `game-chicken1-${gameIndexRef.current}.png`;
-    img.onload = () => {
-      if (canvasRef.current !== null) {
-        ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-        const x = canvasWidthRef.current - chickenSize;
-        ctx.drawImage(img, x, 0, chickenSize, chickenSize);
-      }
-    };
+    const img = await loadImage(
+      urlRef.current + `game-chicken1-${gameIndexRef.current}.png`,
+    );
+    if (canvasRef.current !== null) {
+      ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+      const x = canvasWidthRef.current - chickenSize;
+      ctx.drawImage(img, x, 0, chickenSize, chickenSize);
+    }
   };
 
-  const chickenCoding = (ctx: CanvasRenderingContext2D): void => {
+  const chickenCoding = async (
+    ctx: CanvasRenderingContext2D,
+  ): Promise<void> => {
     const moveDistance = canvasWidthRef.current - chickenSize;
     codeIndexRef.current = (codeIndexRef.current % 2) + 1;
 
-    const img = new Image();
-    img.src = urlRef.current + `coding-chicken1-${codeIndexRef.current}.png`;
-    img.onload = () => {
-      if (canvasRef.current !== null) {
-        ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-        ctx.save();
-        if (flipRef.current) {
-          ctx.scale(-1, 1);
-        }
-
-        ctx.drawImage(
-          img,
-          flipRef.current
-            ? -(canvasWidthRef.current - stepRef.current * moveStepDistance)
-            : moveDistance -
-                stepRef.current * moveStepDistance * directionRef.current,
-          0,
-          chickenSize,
-          chickenSize,
-        );
-        ctx.restore();
+    const img = await loadImage(
+      urlRef.current + `coding-chicken1-${codeIndexRef.current}.png`,
+    );
+    if (canvasRef.current !== null) {
+      ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+      ctx.save();
+      if (flipRef.current) {
+        ctx.scale(-1, 1);
       }
-    };
+
+      ctx.drawImage(
+        img,
+        flipRef.current
+          ? -(canvasWidthRef.current - stepRef.current * moveStepDistance)
+          : moveDistance -
+              stepRef.current * moveStepDistance * directionRef.current,
+        0,
+        chickenSize,
+        chickenSize,
+      );
+      ctx.restore();
+    }
   };
 
   const handleResize = (): void => {
@@ -274,6 +266,7 @@ const Chicken: FC<ChickenProps> = (props) => {
           url,
           urlRef.current + `chicken2-${sleepIndexRef.current}.png`,
         );
+        loadImages(urlRef.current);
       })
       .catch((error) => {
         console.error("获取资源 URL 失败:", error);
