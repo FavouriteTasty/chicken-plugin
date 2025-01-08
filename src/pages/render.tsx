@@ -6,16 +6,31 @@ import Chicken from "./chicken"; // 确保路径正确
 (function () {
   console.log("chicken.bundle.js 执行中");
 
+  const audioUrls = ["music.163.com"];
+
   const container = document.getElementById("react-animation-container");
+  const currentUrl = window.location.href;
   const hasVideo = !!document.querySelector("video");
-  console.log("nihao", container);
+  const hasAudio =
+    !!document.querySelector("audio") ||
+    audioUrls.some((url) => currentUrl.includes(url));
+  console.log(
+    "nihao",
+    container,
+    "url",
+    currentUrl,
+    "hasVideo",
+    hasVideo,
+    "hasAudio",
+    hasAudio,
+  );
   console.log("chrome.runtime", chrome.runtime);
 
   if (container) {
     try {
       console.log("开始创建 React root");
       const root = createRoot(container);
-      root.render(<Chicken hasVideo={hasVideo} />);
+      root.render(<Chicken hasVideo={hasVideo} hasAudio={hasAudio} />);
       console.log("动画组件已渲染");
     } catch (error) {
       console.error("渲染组件时出错：", error);
