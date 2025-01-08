@@ -238,6 +238,15 @@ const Chicken: FC<ChickenProps> = (props) => {
     );
   };
 
+  const getState = (): void => {
+    window.postMessage(
+      {
+        type: "GET_STATE",
+      },
+      "*",
+    );
+  };
+
   useEffect(() => {
     handleResize();
     const resizeObserver = new ResizeObserver(handleResize);
@@ -281,6 +290,7 @@ const Chicken: FC<ChickenProps> = (props) => {
     window.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("keydown", handleKeydown);
     window.addEventListener("message", handleMessage);
+    getState();
 
     const drawFrame = (time: DOMHighResTimeStamp): void => {
       // console.log("coding", codingRef.current, "video", hasVideo);

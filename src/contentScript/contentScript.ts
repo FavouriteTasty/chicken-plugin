@@ -82,6 +82,9 @@ window.onload = (event) => {
           // 将新的状态发送给 Background 脚本
           port.postMessage({ type: "SET_STATE", state: event.data.state });
         }
+        if (event.data.type === "GET_STATE") {
+          port.postMessage({ type: "GET_STATE" });
+        }
       },
       false,
     );
