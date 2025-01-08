@@ -31,11 +31,21 @@ const Chicken: FC<ChickenProps> = (props) => {
   const urlRef = useRef("");
   const chickenSize = 100;
   const grassRef = useRef<boolean>(false);
+  const grassPositionRef = useRef<number>(0);
+  const growRef = useRef<number>(1);
 
   const moveStepDistance = 10;
-  const stepInterval = 100;
+  const stepInterval = 50;
   const mouseStoppedDelay = 3000;
   const keyStoppedDelay = 3000;
+
+  const getChickenPosition = (): number => {
+    const moveDistance = canvasWidthRef.current - chickenSize;
+    return flipRef.current
+      ? -(canvasWidthRef.current - stepRef.current * moveStepDistance)
+      : moveDistance -
+          stepRef.current * moveStepDistance * directionRef.current;
+  };
 
   const getMousePos = (e: MouseEvent): { x: number; y: number } => {
     const canvas = canvasRef.current;
@@ -54,106 +64,83 @@ const Chicken: FC<ChickenProps> = (props) => {
     moveIndexRef.current = (moveIndexRef.current % 4) + 1;
 
     const img = await loadImage(
-      urlRef.current + `chicken1-${moveIndexRef.current}.png`,
+      urlRef.current +
+        (growRef.current > 3 ? "" : "baby-") +
+        `chicken1-${moveIndexRef.current}.png`,
     );
     if (canvasRef.current !== null) {
       ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-
       ctx.save();
-
       if (flipRef.current) {
         ctx.scale(-1, 1);
       }
-
-      const x = flipRef.current
-        ? -(canvasWidthRef.current - stepRef.current * moveStepDistance)
-        : moveDistance -
-          stepRef.current * moveStepDistance * directionRef.current;
-
+      const x = getChickenPosition();
       ctx.drawImage(img, x, 0, chickenSize, chickenSize);
-
       ctx.restore();
     }
-
     if (stepRef.current >= moveMaxSteps) {
       stepRef.current = moveMaxSteps;
       directionRef.current *= -1;
       flipRef.current = !flipRef.current;
     }
-
     if (stepRef.current < 0 && directionRef.current === -1) {
       stepRef.current = 0;
       flipRef.current = false;
       directionRef.current = 1;
     }
-
     stepRef.current += directionRef.current;
   };
 
   const zzzSleep = async (ctx: CanvasRenderingContext2D): Promise<void> => {
-    const moveDistance = canvasWidthRef.current - chickenSize;
-
     zzzIndexRef.current = (zzzIndexRef.current % 3) + 1;
-
     const img = await loadImage(
       urlRef.current + `zzz-${zzzIndexRef.current}.png`,
     );
     if (canvasRef.current !== null) {
+      ctx.save();
       if (flipRef.current) {
         ctx.scale(-1, 1);
       }
-      const x = flipRef.current
-        ? -(canvasWidthRef.current - stepRef.current * moveStepDistance)
-        : moveDistance -
-          stepRef.current * moveStepDistance * directionRef.current;
-
+      const x = getChickenPosition();
       ctx.drawImage(img, x - 40, 15, 40, 40);
+      ctx.restore();
     }
   };
 
   const chickenEat = async (ctx: CanvasRenderingContext2D): Promise<void> => {
-    const moveDistance = canvasWidthRef.current - chickenSize;
     eatIndexRef.current = (eatIndexRef.current % 4) + 1;
     const img = await loadImage(
-      urlRef.current + `chicken-eat1-${eatIndexRef.current}.png`,
+      urlRef.current +
+        (growRef.current > 3 ? "" : "baby-") +
+        `chicken-eat1-${eatIndexRef.current}.png`,
     );
     if (canvasRef.current !== null) {
       ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+      ctx.save();
       if (flipRef.current) {
         ctx.scale(-1, 1);
       }
-      const x = flipRef.current
-        ? -(canvasWidthRef.current - stepRef.current * moveStepDistance)
-        : moveDistance -
-          stepRef.current * moveStepDistance * directionRef.current;
-
+      const x = getChickenPosition();
       ctx.drawImage(img, x, 0, chickenSize, chickenSize);
+      ctx.restore();
     }
   };
 
   const grassDraw = async (ctx: CanvasRenderingContext2D): Promise<void> => {
-    const moveDistance = canvasWidthRef.current - chickenSize;
-
     const img = await loadImage(urlRef.current + `grass.png`);
     if (canvasRef.current !== null) {
+      ctx.save();
       if (flipRef.current) {
         ctx.scale(-1, 1);
       }
-      const x = flipRef.current
-        ? -(canvasWidthRef.current - stepRef.current * moveStepDistance)
-        : moveDistance -
-          stepRef.current * moveStepDistance * directionRef.current;
-
-      ctx.drawImage(img, x, 0, chickenSize, chickenSize);
+      ctx.drawImage(img, grassPositionRef.current, 0, chickenSize, chickenSize);
+      ctx.restore();
     }
   };
 
   const chickenSleep = async (ctx: CanvasRenderingContext2D): Promise<void> => {
-    const moveDistance = canvasWidthRef.current - chickenSize;
-
     if (sleepIndexRef.current !== 2)
       sleepIndexRef.current = (sleepIndexRef.current % 2) + 1;
-
     const img = await loadImage(
       urlRef.current + `chicken2-${sleepIndexRef.current}.png`,
     );
@@ -163,17 +150,7 @@ const Chicken: FC<ChickenProps> = (props) => {
       if (flipRef.current) {
         ctx.scale(-1, 1);
       }
-
-      ctx.drawImage(
-        img,
-        flipRef.current
-          ? -(canvasWidthRef.current - stepRef.current * moveStepDistance)
-          : moveDistance -
-              stepRef.current * moveStepDistance * directionRef.current,
-        0,
-        chickenSize,
-        chickenSize,
-      );
+      ctx.drawImage(img, getChickenPosition(), 0, chickenSize, chickenSize);
       ctx.restore();
     }
   };
@@ -217,9 +194,7 @@ const Chicken: FC<ChickenProps> = (props) => {
   const chickenCoding = async (
     ctx: CanvasRenderingContext2D,
   ): Promise<void> => {
-    const moveDistance = canvasWidthRef.current - chickenSize;
     codeIndexRef.current = (codeIndexRef.current % 2) + 1;
-
     const img = await loadImage(
       urlRef.current + `coding-chicken1-${codeIndexRef.current}.png`,
     );
@@ -229,17 +204,7 @@ const Chicken: FC<ChickenProps> = (props) => {
       if (flipRef.current) {
         ctx.scale(-1, 1);
       }
-
-      ctx.drawImage(
-        img,
-        flipRef.current
-          ? -(canvasWidthRef.current - stepRef.current * moveStepDistance)
-          : moveDistance -
-              stepRef.current * moveStepDistance * directionRef.current,
-        0,
-        chickenSize,
-        chickenSize,
-      );
+      ctx.drawImage(img, getChickenPosition(), 0, chickenSize, chickenSize);
       ctx.restore();
     }
   };
@@ -252,6 +217,25 @@ const Chicken: FC<ChickenProps> = (props) => {
       directionRef.current = 1;
       flipRef.current = false;
     }
+  };
+
+  const handleMessage = (event: MessageEvent): void => {
+    if (event.source !== window) return;
+    if (event.data && event.data.type === "STATE_UPDATE") {
+      console.log("handleMessage", event.data.state);
+      growRef.current = event.data.state.grow;
+    }
+  };
+
+  const updateState = (): void => {
+    const newState = { grow: growRef.current + 1 };
+    window.postMessage(
+      {
+        type: "SET_STATE",
+        state: newState,
+      },
+      "*",
+    );
   };
 
   useEffect(() => {
@@ -274,6 +258,7 @@ const Chicken: FC<ChickenProps> = (props) => {
 
     let mouseMoveTimeout: number | undefined;
     const handleMouseMove = (e: MouseEvent): void => {
+      if (grassRef.current) return;
       if (mouseMoveTimeout !== undefined) clearTimeout(mouseMoveTimeout);
       isMouseMoveRef.current = true;
       mouseMoveTimeout = setTimeout(() => {
@@ -284,6 +269,7 @@ const Chicken: FC<ChickenProps> = (props) => {
 
     let keydownTimeout: number | undefined;
     const handleKeydown = (e: KeyboardEvent): void => {
+      if (grassRef.current) return;
       if (keydownTimeout !== undefined) clearTimeout(keydownTimeout);
       codingRef.current = true;
       keydownTimeout = setTimeout(() => {
@@ -294,6 +280,7 @@ const Chicken: FC<ChickenProps> = (props) => {
 
     window.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("keydown", handleKeydown);
+    window.addEventListener("message", handleMessage);
 
     const drawFrame = (time: DOMHighResTimeStamp): void => {
       // console.log("coding", codingRef.current, "video", hasVideo);
@@ -309,39 +296,59 @@ const Chicken: FC<ChickenProps> = (props) => {
           !hasGame
         ) {
           if (time - lastDrawChickenTimeRef.current >= stepInterval) {
-            if (grassRef.current) {
+            if (
+              grassRef.current &&
+              grassPositionRef.current === getChickenPosition()
+            ) {
               chickenEat(ctx);
-              grassDraw(ctx);
             } else {
-              if (isMouseMoveRef.current) {
+              if (isMouseMoveRef.current && growRef.current > 3) {
                 chickenSleep(ctx);
                 zzzSleep(ctx);
               } else {
                 chickenMove(ctx);
               }
             }
+            if (grassRef.current) {
+              grassDraw(ctx);
+            }
             lastDrawChickenTimeRef.current = time;
           }
         }
-        if (ctx !== null && hasAudio && !codingRef.current) {
+        if (
+          ctx !== null &&
+          hasAudio &&
+          !codingRef.current &&
+          growRef.current > 3
+        ) {
           if (time - lastDrawChickenTimeRef.current >= stepInterval) {
             chickenMusic(ctx);
             lastDrawChickenTimeRef.current = time;
           }
         }
-        if (ctx !== null && hasVideo && !codingRef.current) {
+        if (
+          ctx !== null &&
+          hasVideo &&
+          !codingRef.current &&
+          growRef.current > 3
+        ) {
           if (time - lastDrawChickenTimeRef.current >= stepInterval) {
             chickenDrink(ctx);
             lastDrawChickenTimeRef.current = time;
           }
         }
-        if (ctx !== null && hasGame && !codingRef.current) {
+        if (
+          ctx !== null &&
+          hasGame &&
+          !codingRef.current &&
+          growRef.current > 3
+        ) {
           if (time - lastDrawChickenTimeRef.current >= stepInterval) {
             chickenGame(ctx);
             lastDrawChickenTimeRef.current = time;
           }
         }
-        if (ctx !== null && codingRef.current) {
+        if (ctx !== null && codingRef.current && growRef.current > 3) {
           if (time - lastDrawChickenTimeRef.current >= stepInterval) {
             chickenCoding(ctx);
             lastDrawChickenTimeRef.current = time;
@@ -357,6 +364,7 @@ const Chicken: FC<ChickenProps> = (props) => {
       cancelAnimationFrame(id);
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("keydown", handleKeydown);
+      window.removeEventListener("message", handleMessage);
 
       resizeObserver.disconnect();
     };
@@ -377,11 +385,25 @@ const Chicken: FC<ChickenProps> = (props) => {
         onClick={(e) => {
           const moveDistance = canvasWidthRef.current - chickenSize;
           const pos = getMousePos(e as unknown as MouseEvent);
+          const x = getChickenPosition();
+
           const handleClick = (): void => {
+            if (grassRef.current) return;
+            if (isMouseMoveRef.current) isMouseMoveRef.current = false;
+            if (codingRef.current) codingRef.current = false;
             grassRef.current = true;
+            if (!flipRef.current) {
+              grassPositionRef.current = x - 200 > 0 ? x - 200 : 0;
+            } else {
+              grassPositionRef.current =
+                x - 200 > -canvasWidthRef.current
+                  ? x - 200
+                  : -canvasWidthRef.current;
+            }
             setTimeout(() => {
               grassRef.current = false;
-            }, 3000);
+              updateState();
+            }, 4000);
           };
           if (flipRef.current) {
             if (
@@ -392,10 +414,10 @@ const Chicken: FC<ChickenProps> = (props) => {
                   stepRef.current * moveStepDistance -
                   chickenSize
             ) {
-              console.log("in", grassRef.current);
+              console.log("in", grassRef.current, x);
               handleClick();
             } else {
-              console.log("out", grassRef.current);
+              console.log("out", grassRef.current, x);
             }
           } else {
             if (
@@ -408,9 +430,9 @@ const Chicken: FC<ChickenProps> = (props) => {
                   chickenSize
             ) {
               handleClick();
-              console.log("in", grassRef.current);
+              console.log("in", grassRef.current, x);
             } else {
-              console.log("out", grassRef.current);
+              console.log("out", grassRef.current, x);
             }
           }
         }}
