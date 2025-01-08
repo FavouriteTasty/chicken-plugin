@@ -7,12 +7,15 @@ interface ChickenProps {
 
 const Chicken: FC<ChickenProps> = (props) => {
   const { hasVideo } = props;
+  const codingRef = useRef(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const moveIndexRef = useRef<number>(1);
   const zzzIndexRef = useRef<number>(1);
   const sleepIndexRef = useRef<number>(1);
   const eatIndexRef = useRef<number>(1);
+  const drinkIndexRef = useRef<number>(1);
+  const codeIndexRef = useRef<number>(1);
   const stepRef = useRef<number>(0);
   const lastDrawChickenTimeRef = useRef<number>(0); // Add a ref to store the last draw time
   const directionRef = useRef<number>(1); // 1 for forward, -1 for backward
@@ -27,6 +30,7 @@ const Chicken: FC<ChickenProps> = (props) => {
   const moveStepDistance = 10;
   const stepInterval = 100;
   const mouseStoppedDelay = 3000;
+  const keyStoppedDelay = 3000;
 
   const getMousePos = (e: MouseEvent): { x: number; y: number } => {
     const canvas = canvasRef.current;
@@ -45,9 +49,7 @@ const Chicken: FC<ChickenProps> = (props) => {
     moveIndexRef.current = (moveIndexRef.current % 4) + 1;
 
     const img = new Image();
-    img.src =
-      urlRef.current +
-      (hasVideo ? `cola-chicken1.png` : `chicken1-${moveIndexRef.current}.png`);
+    img.src = urlRef.current + `chicken1-${moveIndexRef.current}.png`;
     img.onload = () => {
       if (canvasRef.current !== null) {
         ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
@@ -178,6 +180,50 @@ const Chicken: FC<ChickenProps> = (props) => {
     };
   };
 
+  const chickenDrink = (ctx: CanvasRenderingContext2D): void => {
+    drinkIndexRef.current = (drinkIndexRef.current % 4) + 1;
+    const img = new Image();
+    img.src = urlRef.current + `cola-chicken1-${drinkIndexRef.current}.png`;
+    img.onload = () => {
+      if (canvasRef.current !== null) {
+        ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+        const x = canvasWidthRef.current - chickenSize;
+
+        ctx.drawImage(img, x, 0, chickenSize, chickenSize);
+      }
+    };
+  };
+
+  const chickenCoding = (ctx: CanvasRenderingContext2D): void => {
+    const moveDistance = canvasWidthRef.current - chickenSize;
+    codeIndexRef.current = (codeIndexRef.current % 2) + 1;
+    console.log("coding");
+
+    const img = new Image();
+    img.src = urlRef.current + `coding-chicken1-${codeIndexRef.current}.png`;
+    img.onload = () => {
+      if (canvasRef.current !== null) {
+        ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+        ctx.save();
+        if (flipRef.current) {
+          ctx.scale(-1, 1);
+        }
+
+        ctx.drawImage(
+          img,
+          flipRef.current
+            ? -(canvasWidthRef.current - stepRef.current * moveStepDistance)
+            : moveDistance -
+                stepRef.current * moveStepDistance * directionRef.current,
+          0,
+          chickenSize,
+          chickenSize,
+        );
+        ctx.restore();
+      }
+    };
+  };
+
   const handleResize = (): void => {
     if (containerRef.current !== null) {
       setCanvasWidth(containerRef.current.clientWidth);
@@ -205,23 +251,36 @@ const Chicken: FC<ChickenProps> = (props) => {
         console.error("获取资源 URL 失败:", error);
       });
 
-    let timeout: number | undefined;
+    let mouseMoveTimeout: number | undefined;
     const handleMouseMove = (e: MouseEvent): void => {
-      if (timeout !== undefined) clearTimeout(timeout);
+      if (mouseMoveTimeout !== undefined) clearTimeout(mouseMoveTimeout);
       isMouseMoveRef.current = true;
-      timeout = setTimeout(() => {
+      mouseMoveTimeout = setTimeout(() => {
         isMouseMoveRef.current = false;
         moveIndexRef.current = 0;
       }, mouseStoppedDelay);
     };
 
+    let keydownTimeout: number | undefined;
+    const handleKeydown = (e: KeyboardEvent): void => {
+      if (keydownTimeout !== undefined) clearTimeout(keydownTimeout);
+      codingRef.current = true;
+      keydownTimeout = setTimeout(() => {
+        codingRef.current = false;
+        codeIndexRef.current = 0;
+      }, keyStoppedDelay);
+    };
+
     window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("keydown", handleKeydown);
 
     const drawFrame = (time: DOMHighResTimeStamp): void => {
+      console.log("coding", codingRef.current, "video", hasVideo);
+
       if (canvasRef.current !== null) {
         const ctx = canvasRef.current.getContext("2d");
 
-        if (ctx !== null) {
+        if (ctx !== null && !hasVideo && !codingRef.current) {
           if (time - lastDrawChickenTimeRef.current >= stepInterval) {
             if (grassRef.current) {
               chickenEat(ctx);
@@ -237,6 +296,18 @@ const Chicken: FC<ChickenProps> = (props) => {
             lastDrawChickenTimeRef.current = time;
           }
         }
+        if (ctx !== null && hasVideo && !codingRef.current) {
+          if (time - lastDrawChickenTimeRef.current >= stepInterval) {
+            chickenDrink(ctx);
+            lastDrawChickenTimeRef.current = time;
+          }
+        }
+        if (ctx !== null && codingRef.current) {
+          if (time - lastDrawChickenTimeRef.current >= stepInterval) {
+            chickenCoding(ctx);
+            lastDrawChickenTimeRef.current = time;
+          }
+        }
       }
       requestAnimationFrame(drawFrame);
     };
@@ -246,6 +317,8 @@ const Chicken: FC<ChickenProps> = (props) => {
     return () => {
       cancelAnimationFrame(id);
       window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("keydown", handleKeydown);
+
       resizeObserver.disconnect();
     };
   }, []);
