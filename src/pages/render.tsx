@@ -7,10 +7,12 @@ import Chicken from "./chicken"; // 确保路径正确
   console.log("chicken.bundle.js 执行中");
 
   const audioUrls = ["music.163.com"];
+  const gameUrls = ["4399", "mihoyo"];
 
   const container = document.getElementById("react-animation-container");
   const currentUrl = window.location.href;
   const hasVideo = !!document.querySelector("video");
+  const hasGame = gameUrls.some((url) => currentUrl.includes(url));
   const hasAudio =
     !!document.querySelector("audio") ||
     audioUrls.some((url) => currentUrl.includes(url));
@@ -23,6 +25,8 @@ import Chicken from "./chicken"; // 确保路径正确
     hasVideo,
     "hasAudio",
     hasAudio,
+    "hasGame",
+    hasGame,
   );
   console.log("chrome.runtime", chrome.runtime);
 
@@ -30,7 +34,9 @@ import Chicken from "./chicken"; // 确保路径正确
     try {
       console.log("开始创建 React root");
       const root = createRoot(container);
-      root.render(<Chicken hasVideo={hasVideo} hasAudio={hasAudio} />);
+      root.render(
+        <Chicken hasVideo={hasVideo} hasAudio={hasAudio} hasGame={hasGame} />,
+      );
       console.log("动画组件已渲染");
     } catch (error) {
       console.error("渲染组件时出错：", error);

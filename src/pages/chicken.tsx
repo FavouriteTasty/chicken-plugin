@@ -4,10 +4,11 @@ import { getExtensionURL } from "../util/path";
 interface ChickenProps {
   hasVideo?: boolean;
   hasAudio?: boolean;
+  hasGame?: boolean;
 }
 
 const Chicken: FC<ChickenProps> = (props) => {
-  const { hasVideo = false, hasAudio = false } = props;
+  const { hasVideo = false, hasAudio = false, hasGame = false } = props;
   const codingRef = useRef(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -17,6 +18,7 @@ const Chicken: FC<ChickenProps> = (props) => {
   const eatIndexRef = useRef<number>(1);
   const drinkIndexRef = useRef<number>(1);
   const musicIndexRef = useRef<number>(1);
+  const gameIndexRef = useRef<number>(1);
   const codeIndexRef = useRef<number>(1);
   const stepRef = useRef<number>(0);
   const lastDrawChickenTimeRef = useRef<number>(0); // Add a ref to store the last draw time
@@ -190,7 +192,6 @@ const Chicken: FC<ChickenProps> = (props) => {
       if (canvasRef.current !== null) {
         ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
         const x = canvasWidthRef.current - chickenSize;
-
         ctx.drawImage(img, x, 0, chickenSize, chickenSize);
       }
     };
@@ -204,7 +205,19 @@ const Chicken: FC<ChickenProps> = (props) => {
       if (canvasRef.current !== null) {
         ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
         const x = canvasWidthRef.current - chickenSize;
+        ctx.drawImage(img, x, 0, chickenSize, chickenSize);
+      }
+    };
+  };
 
+  const chickenGame = (ctx: CanvasRenderingContext2D): void => {
+    gameIndexRef.current = (gameIndexRef.current % 2) + 1;
+    const img = new Image();
+    img.src = urlRef.current + `game-chicken1-${gameIndexRef.current}.png`;
+    img.onload = () => {
+      if (canvasRef.current !== null) {
+        ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+        const x = canvasWidthRef.current - chickenSize;
         ctx.drawImage(img, x, 0, chickenSize, chickenSize);
       }
     };
@@ -295,7 +308,13 @@ const Chicken: FC<ChickenProps> = (props) => {
       if (canvasRef.current !== null) {
         const ctx = canvasRef.current.getContext("2d");
 
-        if (ctx !== null && !hasVideo && !codingRef.current && !hasAudio) {
+        if (
+          ctx !== null &&
+          !hasVideo &&
+          !codingRef.current &&
+          !hasAudio &&
+          !hasGame
+        ) {
           if (time - lastDrawChickenTimeRef.current >= stepInterval) {
             if (grassRef.current) {
               chickenEat(ctx);
@@ -320,6 +339,12 @@ const Chicken: FC<ChickenProps> = (props) => {
         if (ctx !== null && hasVideo && !codingRef.current) {
           if (time - lastDrawChickenTimeRef.current >= stepInterval) {
             chickenDrink(ctx);
+            lastDrawChickenTimeRef.current = time;
+          }
+        }
+        if (ctx !== null && hasGame && !codingRef.current) {
+          if (time - lastDrawChickenTimeRef.current >= stepInterval) {
+            chickenGame(ctx);
             lastDrawChickenTimeRef.current = time;
           }
         }
