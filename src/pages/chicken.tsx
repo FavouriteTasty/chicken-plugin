@@ -35,7 +35,7 @@ const Chicken: FC<ChickenProps> = (props) => {
   const growRef = useRef<number>(1);
 
   const moveStepDistance = 10;
-  const stepInterval = 50;
+  const stepInterval = 100;
   const mouseStoppedDelay = 3000;
   const keyStoppedDelay = 3000;
 
@@ -396,6 +396,8 @@ const Chicken: FC<ChickenProps> = (props) => {
           const moveDistance = canvasWidthRef.current - chickenSize;
           const pos = getMousePos(e as unknown as MouseEvent);
           const x = getChickenPosition();
+          if (!flipRef.current && x - 200 < 0) return;
+          if (flipRef.current && x - 200 <= -canvasWidthRef.current) return;
 
           const handleClick = (): void => {
             if (grassRef.current) return;
